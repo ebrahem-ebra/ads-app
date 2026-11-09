@@ -63,12 +63,7 @@
         tg.ready();
         tg.expand();
 
-        let AdController;
-        try {
-            AdController = window.Adsgram.init({ blockId: "58915", debug: true });
-        } catch (e) {
-            document.getElementById('status').innerText = "خطأ في تهيئة الإعلان: " + e.message;
-        }
+        const AdController = window.Adsgram.init({ blockId: "58915" });
 
         function showAd() {
             const btn = document.getElementById('adBtn');
@@ -81,11 +76,10 @@
                 tg.sendData(JSON.stringify({ status: "ad_watched" }));
                 setTimeout(() => { tg.close(); }, 1000);
             }).catch((result) => {
-                status.innerText = "❌ لم تكتمل المشاهدة: " + (result.description || "");
+                status.innerText = "❌ لم تكتمل المشاهدة أو لا يتوفر إعلان حالياً.";
                 btn.disabled = false;
             });
         }
     </script>
 </body>
 </html>
-
