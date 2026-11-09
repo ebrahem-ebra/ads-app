@@ -2,10 +2,10 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>مشاهدة الإعلان</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+    <script src="https://telegram.org"></script>
+    <script src="https://adsgram.ai"></script>
     <style>
         body {
             font-family: Tahoma, sans-serif;
@@ -60,10 +60,15 @@
 
     <script>
         const tg = window.Telegram.WebApp;
+        tg.ready();
         tg.expand();
 
-        // ضع رقم Block ID الخاص بك من موقع Adsgram هنا
-        const AdController = window.Adsgram.init({ blockId: "58915", debug : true });
+        let AdController;
+        try {
+            AdController = window.Adsgram.init({ blockId: "58915", debug: true });
+        } catch (e) {
+            document.getElementById('status').innerText = "خطأ في تهيئة الإعلان: " + e.message;
+        }
 
         function showAd() {
             const btn = document.getElementById('adBtn');
@@ -76,10 +81,11 @@
                 tg.sendData(JSON.stringify({ status: "ad_watched" }));
                 setTimeout(() => { tg.close(); }, 1000);
             }).catch((result) => {
-                status.innerText = "❌ لم تكتمل المشاهدة أو لا يتوفر إعلان حالياً.";
+                status.innerText = "❌ لم تكتمل المشاهدة: " + (result.description || "");
                 btn.disabled = false;
             });
         }
     </script>
 </body>
 </html>
+
