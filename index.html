@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>مشاهدة الإعلان</title>
     <script src="https://telegram.org"></script>
+    <script src='//://libtl.com' data-zone='12230710' data-sdk='show_12230710'></script>
     <style>
         body {
             font-family: Tahoma, sans-serif;
@@ -46,7 +47,7 @@
             margin-top: 15px;
             font-size: 14px;
             color: #a0a0a5;
-            word-break: break-word;
+            line-height: 1.5;
         }
     </style>
 </head>
@@ -54,8 +55,8 @@
     <div class="card">
         <h2>🎬 شاهد واربح</h2>
         <p>اضغط على الزر بالأسفل لمشاهدة إعلان قصير والحصول على مكافأتك بالدولار.</p>
-        <button id="adBtn" onclick="showAd()" disabled>جاري الاتصال بالسيرفر...</button>
-        <div id="status">يتم تحميل مشغل الإعلانات...</div>
+        <button id="adBtn" onclick="showAd()">تشغيل الإعلان الآن</button>
+        <div id="status">جاهز للعرض...</div>
     </div>
 
     <script>
@@ -63,53 +64,25 @@
         tg.ready();
         tg.expand();
 
-        const btn = document.getElementById('adBtn');
-        const status = document.getElementById('status');
-
-        function loadSdk(url, isFallback) {
-            const s = document.createElement('script');
-            s.src = url;
-            s.setAttribute('data-zone', '12230710');
-            s.setAttribute('data-sdk', 'show_12230710');
-            
-            s.onload = () => {
-                btn.disabled = false;
-                btn.innerText = "تشغيل الإعلان الآن";
-                status.innerText = "✅ الإعلان جاهز للعرض.";
-            };
-            
-            s.onerror = () => {
-                if (!isFallback) {
-                    status.innerText = "جاري تجربة السيرفر البديل...";
-                    loadSdk('https://whephiwums.com', true);
-                } else {
-                    status.innerText = "❌ الشبكة تحجب سيرفرات الإعلانات. يرجى إيقاف مانع الإعلانات (Private DNS) أو تغيير الـ VPN.";
-                    btn.disabled = false;
-                    btn.innerText = "إعادة المحاولة";
-                }
-            };
-            document.head.appendChild(s);
-        }
-
-        loadSdk('https://libtl.com', false);
-
         function showAd() {
-            if (typeof window.show_12230710 !== 'function') {
-                location.reload();
-                return;
-            }
-
+            const btn = document.getElementById('adBtn');
+            const status = document.getElementById('status');
             btn.disabled = true;
             status.innerText = "جاري تشغيل الإعلان...";
 
-            window.show_12230710().then(() => {
-                status.innerText = "✅ تمت المشاهدة! جاري إضافة الرصيد...";
-                tg.sendData(JSON.stringify({ status: "ad_watched" }));
-                setTimeout(() => { tg.close(); }, 1000);
-            }).catch((err) => {
-                status.innerText = "❌ لم تكتمل المشاهدة أو لا يتوفر إعلان حالياً.";
+            if (typeof show_12230710 === 'function') {
+                show_12230710().then(() => {
+                    status.innerText = "✅ تمت المشاهدة! جاري إضافة الرصيد...";
+                    tg.sendData(JSON.stringify({ status: "ad_watched" }));
+                    setTimeout(() => { tg.close(); }, 1000);
+                }).catch((e) => {
+                    status.innerText = "❌ لم تكتمل المشاهدة أو لا يتوفر إعلان حالياً.";
+                    btn.disabled = false;
+                });
+            } else {
+                status.innerText = "⚠️ السكربت قيد التحميل، انتظر 3 ثوانٍ واضغط مجدداً.";
                 btn.disabled = false;
-            });
+            }
         }
     </script>
 </body>
