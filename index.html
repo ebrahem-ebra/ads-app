@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>مشاهدة الإعلان</title>
     <script src="https://telegram.org"></script>
-    <script src='https://libtl.com' data-zone='12230710' data-sdk='show_12230710'></script>
     <style>
         body {
             font-family: Tahoma, sans-serif;
@@ -55,8 +54,8 @@
     <div class="card">
         <h2>🎬 شاهد واربح</h2>
         <p>اضغط على الزر بالأسفل لمشاهدة إعلان قصير والحصول على مكافأتك بالدولار.</p>
-        <button id="adBtn" onclick="showAd()">تشغيل الإعلان الآن</button>
-        <div id="status">جاهز للعرض...</div>
+        <button id="adBtn" onclick="showAd()" disabled>جاري الاتصال بالسيرفر...</button>
+        <div id="status">يتم تحميل مشغل الإعلانات...</div>
     </div>
 
     <script>
@@ -64,32 +63,51 @@
         tg.ready();
         tg.expand();
 
-        function showAd() {
-            const btn = document.getElementById('adBtn');
-            const status = document.getElementById('status');
-            btn.disabled = true;
-            status.innerText = "جاري جلب الإعلان من السيرفر...";
+        const btn = document.getElementById('adBtn');
+        const status = document.getElementById('status');
 
-            if (typeof window.show_12230710 !== 'function') {
-                status.innerText = "❌ لم يتم تحميل سكربت Monetag. تأكد من إيقاف مانع الإعلانات أو تشغيل VPN.";
+        function loadSdk(url, isFallback) {
+            const s = document.createElement('script');
+            s.src = url;
+            s.setAttribute('data-zone', '12230710');
+            s.setAttribute('data-sdk', 'show_12230710');
+            
+            s.onload = () => {
                 btn.disabled = false;
+                btn.innerText = "تشغيل الإعلان الآن";
+                status.innerText = "✅ الإعلان جاهز للعرض.";
+            };
+            
+            s.onerror = () => {
+                if (!isFallback) {
+                    status.innerText = "جاري تجربة السيرفر البديل...";
+                    loadSdk('https://whephiwums.com', true);
+                } else {
+                    status.innerText = "❌ الشبكة تحجب سيرفرات الإعلانات. يرجى إيقاف مانع الإعلانات (Private DNS) أو تغيير الـ VPN.";
+                    btn.disabled = false;
+                    btn.innerText = "إعادة المحاولة";
+                }
+            };
+            document.head.appendChild(s);
+        }
+
+        loadSdk('https://libtl.com', false);
+
+        function showAd() {
+            if (typeof window.show_12230710 !== 'function') {
+                location.reload();
                 return;
             }
 
-            // وضع مهلة زمنية 12 ثانية لكي لا يعلق الزر أبداً
-            let timeout = setTimeout(() => {
-                status.innerText = "⚠️ استغرق السيرفر وقتاً طويلاً (قد لا يتوفر إعلان حالياً). حاول مجدداً.";
-                btn.disabled = false;
-            }, 12000);
+            btn.disabled = true;
+            status.innerText = "جاري تشغيل الإعلان...";
 
             window.show_12230710().then(() => {
-                clearTimeout(timeout);
                 status.innerText = "✅ تمت المشاهدة! جاري إضافة الرصيد...";
                 tg.sendData(JSON.stringify({ status: "ad_watched" }));
                 setTimeout(() => { tg.close(); }, 1000);
             }).catch((err) => {
-                clearTimeout(timeout);
-                status.innerText = "❌ تعذر عرض الإعلان: " + (err ? JSON.stringify(err) : "لا يوجد إعلان متاح حالياً");
+                status.innerText = "❌ لم تكتمل المشاهدة أو لا يتوفر إعلان حالياً.";
                 btn.disabled = false;
             });
         }
