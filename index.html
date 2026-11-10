@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>مشاهدة الإعلان</title>
     <script src="https://telegram.org"></script>
-    <!-- سكربت شركة Monetag الرسمي الخاص بك -->
-    <script src='https://libtl.com' data-zone='12230710' data-sdk='show_12230710'></script>
     <style>
         body {
             font-family: Tahoma, sans-serif;
@@ -55,8 +53,8 @@
     <div class="card">
         <h2>🎬 شاهد واربح</h2>
         <p>اضغط على الزر بالأسفل لمشاهدة إعلان قصير والحصول على مكافأتك بالدولار.</p>
-        <button id="adBtn" onclick="showAd()">تشغيل الإعلان الآن</button>
-        <div id="status">جاهز للعرض...</div>
+        <button id="adBtn" onclick="showAd()" disabled>جاري تجهيز الإعلان...</button>
+        <div id="status">يتم الاتصال بسيرفر الإعلانات...</div>
     </div>
 
     <script>
@@ -64,25 +62,42 @@
         tg.ready();
         tg.expand();
 
-        function showAd() {
-            const btn = document.getElementById('adBtn');
-            const status = document.getElementById('status');
-            btn.disabled = true;
-            status.innerText = "جاري تحميل الإعلان...";
+        const btn = document.getElementById('adBtn');
+        const status = document.getElementById('status');
 
-            if (typeof show_12230710 === 'function') {
-                show_12230710().then(() => {
-                    // المستخدم أكمل مشاهدة الإعلان بنجاح
+        // تحميل سكربت Monetag ديناميكياً ومراقبة نجاح الاتصال
+        const adScript = document.createElement('script');
+        adScript.src = 'https://libtl.com';
+        adScript.setAttribute('data-zone', '12230710');
+        adScript.setAttribute('data-sdk', 'show_12230710');
+
+        adScript.onload = function() {
+            btn.disabled = false;
+            btn.innerText = "تشغيل الإعلان الآن";
+            status.innerText = "✅ الإعلان جاهز للعرض.";
+        };
+
+        adScript.onerror = function() {
+            status.innerText = "❌ تعذر الاتصال بسيرفر الإعلانات. تأكد من الإنترنت أو جرّب تشغيل VPN.";
+        };
+
+        document.head.appendChild(adScript);
+
+        function showAd() {
+            btn.disabled = true;
+            status.innerText = "جاري تشغيل الفيديو...";
+
+            if (typeof window.show_12230710 === 'function') {
+                window.show_12230710().then(() => {
                     status.innerText = "✅ تمت المشاهدة! جاري إضافة الرصيد...";
                     tg.sendData(JSON.stringify({ status: "ad_watched" }));
                     setTimeout(() => { tg.close(); }, 1000);
                 }).catch((err) => {
-                    // المستخدم أغلق الإعلان قبل نهايته أو حدث خطأ
-                    status.innerText = "❌ لم تكتمل المشاهدة أو لا يتوفر إعلان حالياً.";
+                    status.innerText = "❌ لم تكتمل المشاهدة أو لا يتوفر إعلان لبلدك حالياً.";
                     btn.disabled = false;
                 });
             } else {
-                status.innerText = "⚠️ جاري تهيئة مشغل الإعلانات، حاول مرة أخرى بعد ثوانٍ.";
+                status.innerText = "⚠️ المشغل غير جاهز بعد، أعد فتح الصفحة.";
                 btn.disabled = false;
             }
         }
