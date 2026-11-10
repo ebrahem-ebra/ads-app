@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>مشاهدة الإعلان</title>
     <script src="https://telegram.org"></script>
-    <script src='//://libtl.com' data-zone='12230710' data-sdk='show_12230710'></script>
+    <script src='https://libtl.com' data-zone='12230710' data-sdk='show_12230710'></script>
     <style>
         body {
             font-family: Tahoma, sans-serif;
@@ -47,7 +47,6 @@
             margin-top: 15px;
             font-size: 14px;
             color: #a0a0a5;
-            line-height: 1.5;
         }
     </style>
 </head>
@@ -64,6 +63,10 @@
         tg.ready();
         tg.expand();
 
+        // استخراج آيدي المستخدم من بيانات تليجرام المصغرة
+        const user = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+        const userId = user ? user.id : null;
+
         function showAd() {
             const btn = document.getElementById('adBtn');
             const status = document.getElementById('status');
@@ -73,14 +76,17 @@
             if (typeof show_12230710 === 'function') {
                 show_12230710().then(() => {
                     status.innerText = "✅ تمت المشاهدة! جاري إضافة الرصيد...";
-                    tg.sendData(JSON.stringify({ status: "ad_watched" }));
-                    setTimeout(() => { tg.close(); }, 1000);
+                    // إرسال تأكيد للبوت سواء فُتح من الزر السفلي أو من رابط التطبيق المباشر
+                    if (tg.initData) {
+                        tg.sendData(JSON.stringify({ status: "ad_watched" }));
+                    }
+                    setTimeout(() => { tg.close(); }, 1200);
                 }).catch((e) => {
                     status.innerText = "❌ لم تكتمل المشاهدة أو لا يتوفر إعلان حالياً.";
                     btn.disabled = false;
                 });
             } else {
-                status.innerText = "⚠️ السكربت قيد التحميل، انتظر 3 ثوانٍ واضغط مجدداً.";
+                status.innerText = "⚠️ تعذر تحميل مشغل الإعلانات. تأكد من فتح البوت عبر رابط التطبيق الرسمي.";
                 btn.disabled = false;
             }
         }
