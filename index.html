@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>مشاهدة الإعلان</title>
     <script src="https://telegram.org"></script>
-    <script src="https://adsgram.ai"></script>
+    <!-- سكربت شركة Monetag الرسمي الخاص بك -->
+    <script src='https://libtl.com' data-zone='12230710' data-sdk='show_12230710'></script>
     <style>
         body {
             font-family: Tahoma, sans-serif;
@@ -63,22 +64,27 @@
         tg.ready();
         tg.expand();
 
-        const AdController = window.Adsgram.init({ blockId: "58915" });
-
         function showAd() {
             const btn = document.getElementById('adBtn');
             const status = document.getElementById('status');
             btn.disabled = true;
             status.innerText = "جاري تحميل الإعلان...";
 
-            AdController.show().then((result) => {
-                status.innerText = "✅ تمت المشاهدة! جاري إضافة الرصيد...";
-                tg.sendData(JSON.stringify({ status: "ad_watched" }));
-                setTimeout(() => { tg.close(); }, 1000);
-            }).catch((result) => {
-                status.innerText = "❌ لم تكتمل المشاهدة أو لا يتوفر إعلان حالياً.";
+            if (typeof show_12230710 === 'function') {
+                show_12230710().then(() => {
+                    // المستخدم أكمل مشاهدة الإعلان بنجاح
+                    status.innerText = "✅ تمت المشاهدة! جاري إضافة الرصيد...";
+                    tg.sendData(JSON.stringify({ status: "ad_watched" }));
+                    setTimeout(() => { tg.close(); }, 1000);
+                }).catch((err) => {
+                    // المستخدم أغلق الإعلان قبل نهايته أو حدث خطأ
+                    status.innerText = "❌ لم تكتمل المشاهدة أو لا يتوفر إعلان حالياً.";
+                    btn.disabled = false;
+                });
+            } else {
+                status.innerText = "⚠️ جاري تهيئة مشغل الإعلانات، حاول مرة أخرى بعد ثوانٍ.";
                 btn.disabled = false;
-            });
+            }
         }
     </script>
 </body>
