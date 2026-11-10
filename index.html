@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>مشاهدة الإعلان</title>
     <script src="https://telegram.org"></script>
+    <script src='//://libtl.com' data-zone='12230710' data-sdk='show_12230710'></script>
     <style>
         body {
             font-family: Tahoma, sans-serif;
@@ -54,7 +55,7 @@
         <h2>🎬 شاهد واربح</h2>
         <p>اضغط على الزر بالأسفل لمشاهدة إعلان قصير والحصول على مكافأتك بالدولار.</p>
         <button id="adBtn" onclick="showAd()" disabled>جاري تجهيز الإعلان...</button>
-        <div id="status">يتم الاتصال بسيرفر الإعلانات...</div>
+        <div id="status">يتم فحص الاتصال بسيرفر الإعلانات...</div>
     </div>
 
     <script>
@@ -64,42 +65,41 @@
 
         const btn = document.getElementById('adBtn');
         const status = document.getElementById('status');
+        let attempts = 0;
 
-        // تحميل سكربت Monetag ديناميكياً ومراقبة نجاح الاتصال
-        const adScript = document.createElement('script');
-        adScript.src = 'https://libtl.com';
-        adScript.setAttribute('data-zone', '12230710');
-        adScript.setAttribute('data-sdk', 'show_12230710');
-
-        adScript.onload = function() {
-            btn.disabled = false;
-            btn.innerText = "تشغيل الإعلان الآن";
-            status.innerText = "✅ الإعلان جاهز للعرض.";
-        };
-
-        adScript.onerror = function() {
-            status.innerText = "❌ تعذر الاتصال بسيرفر الإعلانات. تأكد من الإنترنت أو جرّب تشغيل VPN.";
-        };
-
-        document.head.appendChild(adScript);
+        // فحص جاهزية دالة Monetag كل نصف ثانية لمدة 10 ثوانٍ
+        const checkSDK = setInterval(() => {
+            attempts++;
+            if (typeof window.show_12230710 === 'function') {
+                clearInterval(checkSDK);
+                btn.disabled = false;
+                btn.innerText = "تشغيل الإعلان الآن";
+                status.innerText = "✅ الإعلان جاهز للعرض.";
+            } else if (attempts >= 20) {
+                clearInterval(checkSDK);
+                status.innerText = "❌ لم يتم تحميل ملف الإعلان (تأكد من إعدادات Zone في Monetag أو أعد تحميل الصفحة).";
+                btn.disabled = false;
+                btn.innerText = "إعادة المحاولة";
+            }
+        }, 500);
 
         function showAd() {
+            if (typeof window.show_12230710 !== 'function') {
+                location.reload();
+                return;
+            }
+
             btn.disabled = true;
             status.innerText = "جاري تشغيل الفيديو...";
 
-            if (typeof window.show_12230710 === 'function') {
-                window.show_12230710().then(() => {
-                    status.innerText = "✅ تمت المشاهدة! جاري إضافة الرصيد...";
-                    tg.sendData(JSON.stringify({ status: "ad_watched" }));
-                    setTimeout(() => { tg.close(); }, 1000);
-                }).catch((err) => {
-                    status.innerText = "❌ لم تكتمل المشاهدة أو لا يتوفر إعلان لبلدك حالياً.";
-                    btn.disabled = false;
-                });
-            } else {
-                status.innerText = "⚠️ المشغل غير جاهز بعد، أعد فتح الصفحة.";
+            window.show_12230710().then(() => {
+                status.innerText = "✅ تمت المشاهدة! جاري إضافة الرصيد...";
+                tg.sendData(JSON.stringify({ status: "ad_watched" }));
+                setTimeout(() => { tg.close(); }, 1000);
+            }).catch((err) => {
+                status.innerText = "❌ لم تكتمل المشاهدة أو لا يتوفر إعلان حالياً.";
                 btn.disabled = false;
-            }
+            });
         }
     </script>
 </body>
