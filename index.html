@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>مشاهدة الإعلان</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src='https://libtl.com/sdk.js' data-zone='12230710' data-sdk='show_12230710'></script>
+    <script src="https://telegram.org"></script>
+    <script src='https://libtl.com' data-zone='12230710' data-sdk='show_12230710'></script>
     <style>
         body {
             font-family: Tahoma, sans-serif;
@@ -63,9 +63,7 @@
         tg.ready();
         tg.expand();
 
-        // استلام رمز الأمان المرسل من البوت عبر الرابط
-        const urlParams = new URLSearchParams(window.location.search);
-        const adToken = tg.initDataUnsafe.start_param || urlParams.get('tgWebAppStartParam') || "";
+        const startParam = tg.initDataUnsafe && tg.initDataUnsafe.start_param ? tg.initDataUnsafe.start_param : "";
 
         function showAd() {
             const btn = document.getElementById('adBtn');
@@ -76,16 +74,23 @@
             if (typeof show_12230710 === 'function') {
                 show_12230710().then(() => {
                     status.innerText = "✅ تمت المشاهدة! جاري توجيهك لاستلام المكافأة...";
-                    // إعادة التوجيه إلى البوت مع رمز الأمان لاحتساب الرصيد بأمان
-                    const returnUrl = adToken ? `https://t.me/Coin_syria27Bot?start=watched_${adToken}` : `https://t.me/Coin_syria27Bot`;
-                    tg.openTelegramLink(returnUrl);
-                    setTimeout(() => { tg.close(); }, 800);
+                    const rewardLink = startParam 
+                        ? `https://t.me{startParam}` 
+                        : `https://t.me`;
+                    
+                    tg.openTelegramLink(rewardLink);
+                    
+                    // تحديث الصفحة تلقائياً بعد ثمانية واحدة لتكون جاهزة للإعلان التالي
+                    setTimeout(() => {
+                        location.reload();
+                        tg.close();
+                    }, 1000);
                 }).catch((e) => {
                     status.innerText = "❌ لم تكتمل المشاهدة أو لا يتوفر إعلان حالياً.";
                     btn.disabled = false;
                 });
             } else {
-                status.innerText = "⚠️ جاري تحميل مشغل الإعلانات، انتظر 3 ثوانٍ واضغط مجدداً.";
+                status.innerText = "⚠️ جاري تحميل مشغل الإعلانات، حاول بعد ثانيتين.";
                 btn.disabled = false;
             }
         }
